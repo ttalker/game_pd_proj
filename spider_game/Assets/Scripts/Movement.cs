@@ -1,53 +1,42 @@
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.PlayerLoop;
-
+[RequireComponent(typeof(Rigidbody2D))]
 public class Movement : MonoBehaviour
 {
-    public float moveSpeed;
 
-    private bool isMoving;
+    public float walkSpeed = 5f;
 
-    private Vector2 input;
+    Vector2 moveInput;
 
+    public bool IsMoving { get; private set; }
+
+    Rigidbody2D rb;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
 
     private void Update()
     {
-        if (!isMoving)
-        { 
-            input.x = Input.GetAxisRaw("Horizontal");
-            input.y = Input.GetAxisRaw("Vertical");
-
-            if (input != Vector2.zero)
-            {
-
-                var targetPos = transform.position;
-                targetPos.x += input.x;
-                targetPos.y += input.y;
-
-
-                StartCoroutine(Move(targetPos));
-            }
-
-        }
-    }
-
-    IEnumerator Move(Vector3 targetPos)
-    {
-        isMoving = true;
-
-        while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon) 
-        {
-            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
-
-            yield return null;
-        }
         
-        transform.position = targetPos;
-        isMoving = false;
-
 
     }
-    
+
+    private void FixedUpdate()
+    {
+        rb.linearVelocity = new Vector2(moveInput.x * walkSpeed, rb.linearVelocity.y);
+    }
+
+    public void OnMove(InputAction.CallbackContext context)
+    {
+        moveInput = context.ReadValue<Vector2>();
+
+        IsMoving = moveInput != Vector2.zero;
+
+    }
+
 }
